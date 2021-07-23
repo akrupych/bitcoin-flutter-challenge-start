@@ -11,8 +11,8 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
-  String selectedCurrency = 'USD';
-  int rate;
+  String selectedCurrency = currenciesList[0];
+  int rate = 0;
 
   DropdownButton<String> androidDropdown() {
     List<DropdownMenuItem<String>> dropdownItems = [];
@@ -28,9 +28,7 @@ class _PriceScreenState extends State<PriceScreen> {
       value: selectedCurrency,
       items: dropdownItems,
       onChanged: (value) {
-        setState(() {
-          selectedCurrency = value;
-        });
+        onCurrencySelected(value);
       },
     );
   }
@@ -45,14 +43,14 @@ class _PriceScreenState extends State<PriceScreen> {
       backgroundColor: Colors.lightBlue,
       itemExtent: 32.0,
       onSelectedItemChanged: (selectedIndex) {
-        print(selectedIndex);
+        onCurrencySelected(currenciesList[selectedIndex]);
       },
       children: pickerItems,
     );
   }
 
   Future<void> getData() async {
-    final rate = await CoinData.getCoinData("BTC", "USD");
+    final rate = await CoinData.getCoinData("BTC", selectedCurrency);
     setState(() {
       this.rate = rate.round();
     });
@@ -85,7 +83,7 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = $rate USD',
+                  '1 BTC = $rate $selectedCurrency',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,
@@ -105,5 +103,12 @@ class _PriceScreenState extends State<PriceScreen> {
         ],
       ),
     );
+  }
+
+  void onCurrencySelected(String currency) {
+    setState(() {
+      selectedCurrency = currency;
+      getData();
+    });
   }
 }
