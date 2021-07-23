@@ -12,7 +12,8 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = currenciesList[0];
-  int rate = 0;
+  Map<String, int> rates =
+      Map.fromIterable(cryptoList, key: (e) => e, value: (e) => 0);
 
   DropdownButton<String> androidDropdown() {
     List<DropdownMenuItem<String>> dropdownItems = [];
@@ -50,9 +51,13 @@ class _PriceScreenState extends State<PriceScreen> {
   }
 
   Future<void> getData() async {
-    final rate = await CoinData.getCoinData("BTC", selectedCurrency);
+    Map<String, int> newRates = {};
+    for (String crypto in rates.keys) {
+      final rate = await CoinData.getCoinData(crypto, selectedCurrency);
+      newRates[crypto] = rate.round();
+    }
     setState(() {
-      this.rate = rate.round();
+      rates = newRates;
     });
   }
 
@@ -72,26 +77,31 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 BTC = $rate $selectedCurrency',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+          Column(
+            children: cryptoList
+                .map((crypto) => Padding(
+                      padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
+                      child: Card(
+                        color: Colors.lightBlueAccent,
+                        elevation: 5.0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 15.0, horizontal: 28.0),
+                          child: Text(
+                            '1 $crypto = ${rates[crypto]} $selectedCurrency',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20.0,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ))
+                .toList(),
           ),
           Container(
             height: 150.0,
